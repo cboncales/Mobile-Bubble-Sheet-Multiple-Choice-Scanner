@@ -12,8 +12,6 @@ app = Flask(__name__)
 CORS(app)
 
 # Import the existing four_point transformation
-import sys
-sys.path.append('./grader')
 import four_point
 
 @app.route('/process_omr', methods=['POST'])
