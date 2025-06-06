@@ -57,8 +57,17 @@ class OmrService {
           .select()
           .eq('user_id', user.id)
           .order('created_at', ascending: false);
-      return response.map<Test>((json) => Test.fromJson(json)).toList();
+      
+      // Convert response to List<Test>, handling empty list case
+      final List<dynamic> data = response as List<dynamic>;
+      return data.map<Test>((json) => Test.fromJson(json)).toList();
     } catch (e) {
+      // Check if it's just an empty result vs actual error
+      if (e.toString().contains('No rows found') || 
+          e.toString().contains('null') ||
+          e.toString().contains('no data')) {
+        return <Test>[]; // Return empty list for no data
+      }
       throw Exception('Failed to fetch tests: $e');
     }
   }
