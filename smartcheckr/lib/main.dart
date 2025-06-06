@@ -3,8 +3,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
 import 'services/omr_service.dart';
+import 'services/auth_service.dart';
 import 'bloc/omr_bloc.dart';
+import 'bloc/auth_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,8 +36,11 @@ class SmartCheckrApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => OmrBloc(OmrService()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => AuthBloc(AuthService())),
+        BlocProvider(create: (context) => OmrBloc(OmrService())),
+      ],
       child: MaterialApp(
         title: 'SmartCheckr',
         debugShowCheckedModeBanner: false,
@@ -70,8 +76,44 @@ class SmartCheckrApp extends StatelessWidget {
             fillColor: Colors.white,
           ),
         ),
-        home: const HomeScreen(),
+        home: const AuthWrapper(),
       ),
+    );
+  }
+}
+
+// Authentication wrapper with route guard
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    // Check authentication status when app starts
+    context.read<AuthBloc>().add(CheckAuthStatus());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is AuthLoading || state is AuthInitial) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        } else if (state is AuthAuthenticated) {
+          return const HomeScreen();
+        } else {
+          return const LoginScreen();
+        }
+      },
     );
   }
 }
