@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +25,7 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
   final ImagePicker _picker = ImagePicker();
   
   File? _selectedImage;
+  Uint8List? _selectedImageBytes; // For web compatibility
   Test? _selectedTest;
   List<Test> _availableTests = [];
   bool _isLoadingTests = false;
@@ -62,9 +65,20 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
       );
       
       if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
+        if (kIsWeb) {
+          // For web, read as bytes
+          final bytes = await image.readAsBytes();
+          setState(() {
+            _selectedImageBytes = bytes;
+            _selectedImage = null; // Clear file reference for web
+          });
+        } else {
+          // For mobile, use file
+          setState(() {
+            _selectedImage = File(image.path);
+            _selectedImageBytes = null; // Clear bytes for mobile
+          });
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -108,17 +122,34 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
 
   void _processAnswerSheet() {
     if (_formKey.currentState!.validate() && 
-        _selectedImage != null && 
+        (_selectedImage != null || _selectedImageBytes != null) && 
         _selectedTest != null) {
       
-      context.read<OmrBloc>().add(
-        ProcessAnswerSheet(
-          imageFile: _selectedImage!,
-          testId: _selectedTest!.id,
-          studentName: _studentNameController.text.trim(),
-          studentId: _studentIdController.text.trim(),
-        ),
-      );
+      File? imageFile;
+      if (kIsWeb && _selectedImageBytes != null) {
+        // For web, create a temporary file from bytes
+        // Note: This might need adjustment based on your OMR processing requirements
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Web image processing not fully supported yet. Please use mobile device.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      } else if (_selectedImage != null) {
+        imageFile = _selectedImage!;
+      }
+      
+      if (imageFile != null) {
+        context.read<OmrBloc>().add(
+          ProcessAnswerSheet(
+            imageFile: imageFile,
+            testId: _selectedTest!.id,
+            studentName: _studentNameController.text.trim(),
+            studentId: _studentIdController.text.trim(),
+          ),
+        );
+      }
     }
   }
 
@@ -229,16 +260,19 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
                           items: _availableTests.map((test) {
                             return DropdownMenuItem<Test>(
                               value: test,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    test.title,
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  Flexible(
+                                    child: Text(
+                                      test.title,
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    '${test.totalItems} questions',
+                                    '${test.totalItems}Q',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey[600],
@@ -323,13 +357,20 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
                           border: Border.all(color: Colors.grey[300]!),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: _selectedImage != null
+                        child: (_selectedImage != null || _selectedImageBytes != null)
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  _selectedImage!,
-                                  fit: BoxFit.cover,
-                                ),
+                                child: kIsWeb && _selectedImageBytes != null
+                                    ? Image.memory(
+                                        _selectedImageBytes!,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : _selectedImage != null
+                                        ? Image.file(
+                                            _selectedImage!,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Container(), // Fallback
                               )
                             : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -360,7 +401,7 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
                       ),
                     ),
                     
-                    if (_selectedImage != null) ...[
+                    if (_selectedImage != null || _selectedImageBytes != null) ...[
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -374,6 +415,7 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
                             onPressed: () {
                               setState(() {
                                 _selectedImage = null;
+                                _selectedImageBytes = null;
                               });
                             },
                             icon: const Icon(Icons.delete, color: Colors.red),
@@ -389,7 +431,7 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: (_selectedImage != null && 
+                        onPressed: ((_selectedImage != null || _selectedImageBytes != null) && 
                                    _selectedTest != null && 
                                    !_isLoadingTests) 
                             ? _processAnswerSheet 
@@ -404,7 +446,7 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
                       ),
                     ),
                     
-                    if (_selectedImage == null || _selectedTest == null) ...[
+                    if ((_selectedImage == null && _selectedImageBytes == null) || _selectedTest == null) ...[
                       const SizedBox(height: 8),
                       Text(
                         'Please select a test and capture/select an answer sheet image',
