@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../bloc/omr_bloc.dart';
+import '../bloc/auth_bloc.dart';
 import '../models/test_model.dart';
+import '../services/auth_service.dart';
 import 'create_test_screen.dart';
 import 'scan_answer_sheet_screen.dart';
 import 'test_details_screen.dart';
@@ -35,6 +37,55 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               context.read<OmrBloc>().add(LoadTests());
+            },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.person),
+            onSelected: (value) {
+              if (value == 'logout') {
+                _showLogoutConfirmation(context);
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              final authService = AuthService();
+              final userName = authService.getUserDisplayName() ?? 'Instructor';
+              final userEmail = authService.getUserEmail() ?? '';
+              
+              return [
+                PopupMenuItem<String>(
+                  enabled: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        userEmail,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const Divider(),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Sign Out'),
+                    ],
+                  ),
+                ),
+              ];
             },
           ),
         ],
@@ -414,5 +465,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
+  }
+
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Sign Out'),
+          content: const Text('Are you sure you want to sign out?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                context.read<AuthBloc>().add(LogoutRequested());
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Sign Out'),
+            ),
+          ],
+        );
+      },
+    );
   }
 } 
