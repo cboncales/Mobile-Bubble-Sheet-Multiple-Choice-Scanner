@@ -150,6 +150,7 @@ class TestDetailsScreen extends StatelessWidget {
                           child: Text(
                             'Question',
                             style: TextStyle(fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Expanded(
@@ -158,6 +159,7 @@ class TestDetailsScreen extends StatelessWidget {
                             'Correct Answer',
                             style: TextStyle(fontWeight: FontWeight.bold),
                             textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -191,20 +193,22 @@ class TestDetailsScreen extends StatelessWidget {
                               child: Text(
                                 '${index + 1}.',
                                 style: const TextStyle(fontWeight: FontWeight.w500),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             Expanded(
                               flex: 3,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 4,
                                 children: ['A', 'B', 'C', 'D', 'E'].asMap().entries.map((entry) {
                                   int answerIndex = entry.key;
                                   String answerLetter = entry.value;
                                   bool isCorrect = answerIndex == correctAnswerIndex;
                                   
                                   return Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                                    margin: const EdgeInsets.symmetric(vertical: 2),
+                                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                                     decoration: BoxDecoration(
                                       color: isCorrect ? Colors.blue : Colors.grey[200],
                                       borderRadius: BorderRadius.circular(6),
@@ -249,8 +253,10 @@ class TestDetailsScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     
                     // Answer distribution
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    Wrap(
+                      alignment: WrapAlignment.spaceAround,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: _buildAnswerDistribution(answerKey),
                     ),
                   ],
@@ -261,28 +267,57 @@ class TestDetailsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // Action Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      _editTest(context);
-                    },
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Edit Test'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/scan', arguments: test);
-                    },
-                    icon: const Icon(Icons.scanner),
-                    label: const Text('Scan Answers'),
-                  ),
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth > 400) {
+                  // Wide layout - side by side
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            _editTest(context);
+                          },
+                          icon: const Icon(Icons.edit),
+                          label: const Text('Edit Test'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/scan', arguments: test);
+                          },
+                          icon: const Icon(Icons.scanner),
+                          label: const Text('Scan Answers'),
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  // Narrow layout - stacked
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          _editTest(context);
+                        },
+                        icon: const Icon(Icons.edit),
+                        label: const Text('Edit Test'),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/scan', arguments: test);
+                        },
+                        icon: const Icon(Icons.scanner),
+                        label: const Text('Scan Answers'),
+                      ),
+                    ],
+                  );
+                }
+              },
             ),
           ],
         ),
