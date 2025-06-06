@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/test_model.dart';
+import 'scan_answer_sheet_screen.dart';
 
 class TestDetailsScreen extends StatelessWidget {
   final Test test;
@@ -286,7 +287,12 @@ class TestDetailsScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/scan', arguments: test);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ScanAnswerSheetScreen(selectedTest: test),
+                              ),
+                            );
                           },
                           icon: const Icon(Icons.scanner),
                           label: const Text('Scan Answers'),
@@ -307,10 +313,15 @@ class TestDetailsScreen extends StatelessWidget {
                         label: const Text('Edit Test'),
                       ),
                       const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/scan', arguments: test);
-                        },
+                                             ElevatedButton.icon(
+                         onPressed: () {
+                           Navigator.push(
+                             context,
+                             MaterialPageRoute(
+                               builder: (context) => ScanAnswerSheetScreen(selectedTest: test),
+                             ),
+                           );
+                         },
                         icon: const Icon(Icons.scanner),
                         label: const Text('Scan Answers'),
                       ),

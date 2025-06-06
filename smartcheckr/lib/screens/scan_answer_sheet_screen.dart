@@ -8,7 +8,9 @@ import '../models/test_model.dart';
 import 'processing_result_screen.dart';
 
 class ScanAnswerSheetScreen extends StatefulWidget {
-  const ScanAnswerSheetScreen({super.key});
+  final Test? selectedTest;
+  
+  const ScanAnswerSheetScreen({super.key, this.selectedTest});
 
   @override
   State<ScanAnswerSheetScreen> createState() => _ScanAnswerSheetScreenState();
@@ -28,6 +30,11 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
   @override
   void initState() {
     super.initState();
+    // If a test was passed, use it as the selected test
+    if (widget.selectedTest != null) {
+      _selectedTest = widget.selectedTest;
+      _availableTests = [widget.selectedTest!];
+    }
     _loadTests();
   }
 
@@ -125,11 +132,14 @@ class _ScanAnswerSheetScreenState extends State<ScanAnswerSheetScreen> {
         listener: (context, state) {
           if (state is TestsLoaded) {
             setState(() {
-              _availableTests = state.tests;
-              _isLoadingTests = false;
-              if (_availableTests.isNotEmpty && _selectedTest == null) {
-                _selectedTest = _availableTests.first;
+              // If no test was pre-selected, use all available tests
+              if (widget.selectedTest == null) {
+                _availableTests = state.tests;
+                if (_availableTests.isNotEmpty && _selectedTest == null) {
+                  _selectedTest = _availableTests.first;
+                }
               }
+              _isLoadingTests = false;
             });
           } else if (state is AnswerSheetProcessed) {
             Navigator.push(
