@@ -127,9 +127,19 @@ class OmrBloc extends Bloc<OmrEvent, OmrState> {
     emit(OmrLoading());
     try {
       final tests = await omrService.getTests();
-      emit(TestsLoaded(tests));
+      emit(TestsLoaded(tests)); // This will handle empty list correctly
     } catch (e) {
-      emit(OmrError(e.toString()));
+      // Provide more user-friendly error messages
+      String errorMessage = 'Failed to load tests';
+      if (e.toString().contains('not authenticated')) {
+        errorMessage = 'Please log in to view your tests';
+      } else if (e.toString().contains('network') || e.toString().contains('connection')) {
+        errorMessage = 'Network error. Please check your connection';
+      } else if (e.toString().contains('permission') || e.toString().contains('unauthorized')) {
+        errorMessage = 'You don\'t have permission to access these tests';
+      }
+      
+      emit(OmrError(errorMessage));
     }
   }
 
