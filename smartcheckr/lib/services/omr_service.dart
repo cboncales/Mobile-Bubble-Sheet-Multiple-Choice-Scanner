@@ -126,10 +126,16 @@ class OmrService {
   // Upload image to Supabase Storage
   Future<String> uploadImage(File imageFile, String fileName) async {
     try {
-      final bytes = await imageFile.readAsBytes();
-      await supabase.storage.from('answer_sheets').uploadBinary(fileName, bytes);
+      final user = supabase.auth.currentUser;
+      if (user == null) throw Exception('User not authenticated');
       
-      final url = supabase.storage.from('answer_sheets').getPublicUrl(fileName);
+      // Upload to user-specific folder: {user_id}/{filename}
+      final filePath = '${user.id}/$fileName';
+      
+      final bytes = await imageFile.readAsBytes();
+      await supabase.storage.from('answersheets').uploadBinary(filePath, bytes);
+      
+      final url = supabase.storage.from('answersheets').getPublicUrl(filePath);
       return url;
     } catch (e) {
       throw Exception('Failed to upload image: $e');
