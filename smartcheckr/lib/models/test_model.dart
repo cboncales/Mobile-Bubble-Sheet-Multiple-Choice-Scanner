@@ -103,7 +103,52 @@ class TestResult {
   }
 }
 
-// Local model for processing results (not stored in Supabase)
+// Sheet model matching your Sheets table
+class Sheet {
+  final String id;
+  final String testId;
+  final String? image;
+  final DateTime createdAt;
+  final String studentId;
+  final String studentName;
+  final double score;
+
+  Sheet({
+    required this.id,
+    required this.testId,
+    this.image,
+    required this.createdAt,
+    required this.studentId,
+    required this.studentName,
+    required this.score,
+  });
+
+  factory Sheet.fromJson(Map<String, dynamic> json) {
+    return Sheet(
+      id: json['id'],
+      testId: json['test_id'],
+      image: json['image'],
+      createdAt: DateTime.parse(json['created_at']),
+      studentId: json['student_id'],
+      studentName: json['student_name'],
+      score: json['score'].toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'test_id': testId,
+      'image': image,
+      'created_at': createdAt.toIso8601String(),
+      'student_id': studentId,
+      'student_name': studentName,
+      'score': score,
+    };
+  }
+}
+
+// Local model for processing results (now will be saved to Sheets table)
 class ProcessingResult {
   final String testId;
   final String studentName;
@@ -136,5 +181,18 @@ class ProcessingResult {
       'processed_at': processedAt.toIso8601String(),
       'image_url': imageUrl,
     };
+  }
+
+  // Convert to Sheet for database storage
+  Sheet toSheet(String id) {
+    return Sheet(
+      id: id,
+      testId: testId,
+      image: imageUrl,
+      createdAt: processedAt,
+      studentId: studentId,
+      studentName: studentName,
+      score: percentage,
+    );
   }
 } 
