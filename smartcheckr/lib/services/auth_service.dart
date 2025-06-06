@@ -91,5 +91,5 @@ class AuthService {
   }
 
   // Listen to auth state changes
-  Stream<AuthState> get authStateChanges => supabase.auth.onAuthStateChange;
+  Stream<supabase_flutter.AuthState> get authStateChanges => supabase.auth.onAuthStateChange;
 } 
