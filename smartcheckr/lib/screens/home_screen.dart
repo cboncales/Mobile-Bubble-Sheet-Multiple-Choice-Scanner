@@ -365,44 +365,45 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildEmptyState() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.blue.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.quiz,
-                size: 80,
+                size: 60,
                 color: Colors.blue[400],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Text(
               'No Tests Created Yet',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 color: Colors.grey[700],
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               'Welcome to SmartCheckr! 🎯\n\nCreate your first test to start using the OMR-based answer sheet checking system.',
               style: TextStyle(
                 color: Colors.grey[600],
-                fontSize: 16,
-                height: 1.5,
+                fontSize: 14,
+                height: 1.4,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
@@ -416,8 +417,8 @@ class _HomeScreenState extends State<HomeScreen> {
               label: const Text('Create Your First Test'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+                  horizontal: 20,
+                  vertical: 10,
                 ),
               ),
             ),
@@ -429,46 +430,49 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildErrorState(String message) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.wifi_off,
-                size: 80,
+                size: 60,
                 color: Colors.red[400],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Text(
               'Unable to Load Tests',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 color: Colors.red[600],
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               message,
               style: TextStyle(
                 color: Colors.grey[600],
-                fontSize: 16,
-                height: 1.5,
+                fontSize: 14,
+                height: 1.4,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            const SizedBox(height: 20),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 12,
+              runSpacing: 8,
               children: [
                 ElevatedButton.icon(
                   onPressed: () {
@@ -481,7 +485,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     foregroundColor: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 16),
                 OutlinedButton.icon(
                   onPressed: () {
                     Navigator.push(
